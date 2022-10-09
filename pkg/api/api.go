@@ -47,10 +47,11 @@ type BuilderResponse struct {
 	Platform     string `json:"platform"`
 
 	// Version 2 uses mTLS for authentication
-	Version string `json:"version"`
-	CACert  string `json:"caCert"`
-	Cert    string `json:"cert"`
-	Key     string `json:"key"`
+	Version    string `json:"version"`
+	ServerName string `json:"serverName"`
+	CACert     string `json:"caCert"`
+	Cert       string `json:"cert"`
+	Key        string `json:"key"`
 }
 
 func (d *Depot) GetBuilder(buildID string, platform string) (*BuilderResponse, error) {

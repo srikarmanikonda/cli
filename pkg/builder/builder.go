@@ -29,6 +29,7 @@ type AcquiredBuilder struct {
 	Version     string
 	Addr        string
 	AccessToken string
+	ServerName  string
 	CACert      string
 	Cert        string
 	Key         string
@@ -48,6 +49,7 @@ func (b *Builder) Acquire(l progress.Logger) (*AcquiredBuilder, error) {
 		if resp.OK {
 			builder.Version = resp.Version
 			builder.AccessToken = resp.AccessToken
+			builder.ServerName = resp.ServerName
 			builder.CACert = resp.CACert
 			builder.Cert = resp.Cert
 			builder.Key = resp.Key
@@ -56,6 +58,9 @@ func (b *Builder) Acquire(l progress.Logger) (*AcquiredBuilder, error) {
 		// Loop if the builder is not ready
 		count := 0
 		for {
+			// Save the server address in ServerName (it might only be known once the machine is ready)
+			builder.ServerName = resp.ServerName
+
 			if resp != nil && resp.OK && resp.BuilderState == "ready" {
 				break
 			}

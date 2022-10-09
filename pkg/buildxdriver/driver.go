@@ -41,6 +41,7 @@ func (d *Driver) Bootstrap(ctx context.Context, l progress.Logger) error {
 
 	if builderInfo.Cert != "" {
 		tls := &tlsOpts{}
+		tls.serverName = builderInfo.ServerName
 
 		file, err := os.CreateTemp("", "depot-cert")
 		if err != nil {
