@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	depotapi "github.com/depot/cli/pkg/api"
+	"github.com/depot/cli/pkg/tailnet"
 	"github.com/docker/buildx/build"
 	"github.com/docker/buildx/driver"
 	"github.com/docker/buildx/store/storeutil"
@@ -279,6 +280,21 @@ func buildTargets(ctx context.Context, dockerCli command.Cli, opts map[string]bu
 			log.Printf("error releasing builder: %v", err)
 		}
 	}()
+
+	if b.TailnetKey != "" {
+		dir, err := os.MkdirTemp("", "depot-net-*")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer os.RemoveAll(dir)
+		tailnetServer, err := tailnet.NewServer(dir, b.ID, b.TailnetKey)
+		if err != nil {
+			return "", err
+		}
+		defer tailnetServer.Close()
+
+		ctx = tailnet.WithTailnetServer(ctx, tailnetServer)
+	}
 
 	dis, err := getDrivers(ctx, dockerCli, contextPathHash, b.ID)
 	if err != nil {

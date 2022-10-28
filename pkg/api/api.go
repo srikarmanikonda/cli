@@ -25,8 +25,9 @@ func NewDepotFromEnv(token string) (*Depot, error) {
 }
 
 type BuildReponse struct {
-	OK bool   `json:"ok"`
-	ID string `json:"id"`
+	OK         bool   `json:"ok"`
+	ID         string `json:"id"`
+	TailnetKey string `json:"tailnetKey,omitempty"`
 }
 
 func (d *Depot) CreateBuild(projectID string) (*BuildReponse, error) {

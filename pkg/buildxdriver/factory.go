@@ -5,6 +5,7 @@ import (
 
 	"github.com/depot/cli/pkg/api"
 	"github.com/depot/cli/pkg/builder"
+	"github.com/depot/cli/pkg/tailnet"
 	"github.com/docker/buildx/driver"
 	dockerclient "github.com/docker/docker/client"
 )
@@ -39,8 +40,17 @@ func (f *factory) New(ctx context.Context, cfg driver.InitConfig) (driver.Driver
 	buildID := cfg.DriverOpts["buildID"]
 	depot := api.GetContextClient(ctx)
 	builder := builder.NewBuilder(depot, buildID, platform)
+	tailnetServer := tailnet.GetContextServer(ctx)
 
-	d := &Driver{factory: f, InitConfig: cfg, builderInfo: nil, depot: depot, builder: builder, done: make(chan struct{})}
+	d := &Driver{
+		factory:       f,
+		InitConfig:    cfg,
+		builderInfo:   nil,
+		depot:         depot,
+		builder:       builder,
+		done:          make(chan struct{}),
+		tailnetServer: tailnetServer,
+	}
 	return d, nil
 }
 

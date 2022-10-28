@@ -3,7 +3,9 @@ package buildxdriver
 import (
 	"context"
 	"log"
+	"net"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/depot/cli/pkg/api"
@@ -12,14 +14,16 @@ import (
 	"github.com/docker/buildx/util/progress"
 	"github.com/moby/buildkit/client"
 	"github.com/pkg/errors"
+	"tailscale.com/tsnet"
 )
 
 type Driver struct {
 	driver.InitConfig
-	factory     driver.Factory
-	depot       *api.Depot
-	builder     *builder.Builder
-	builderInfo *builder.AcquiredBuilder
+	factory       driver.Factory
+	depot         *api.Depot
+	builder       *builder.Builder
+	builderInfo   *builder.AcquiredBuilder
+	tailnetServer *tsnet.Server
 	*tlsOpts
 
 	done chan struct{}
@@ -130,6 +134,13 @@ func (d *Driver) Client(ctx context.Context) (*client.Client, error) {
 	opts := []client.ClientOpt{}
 	if d.tlsOpts != nil {
 		opts = append(opts, client.WithCredentials(d.tlsOpts.serverName, d.tlsOpts.caCert, d.tlsOpts.cert, d.tlsOpts.key))
+	}
+
+	if d.tailnetServer != nil {
+		opts = append(opts, client.WithContextDialer(func(ctx context.Context, addr string) (net.Conn, error) {
+			addr = strings.TrimPrefix(addr, "tcp://")
+			return d.tailnetServer.Dial(ctx, "tcp", addr)
+		}))
 	}
 
 	return client.New(ctx, d.builderInfo.Addr, opts...)
